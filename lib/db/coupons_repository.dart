@@ -1,13 +1,13 @@
 import 'package:sqflite/sqflite.dart';
-import 'database.dart';
 import '../models/coupon.dart';
 
 class CouponsRepository {
-  Future<Database> get _db async => AppDatabase.instance.database;
+  final Database _db;
+
+  CouponsRepository(this._db);
 
   Future<List<Coupon>> getAvailable() async {
-    final db = await _db;
-    final result = await db.query(
+    final result = await _db.query(
       'coupons',
       where: 'used = ?',
       whereArgs: [0],
@@ -17,8 +17,7 @@ class CouponsRepository {
   }
 
   Future<List<Coupon>> getUsed() async {
-    final db = await _db;
-    final result = await db.query(
+    final result = await _db.query(
       'coupons',
       where: 'used = ?',
       whereArgs: [1],
@@ -28,8 +27,8 @@ class CouponsRepository {
   }
 
   Future<int> insert(Coupon coupon) async {
-    final db = await _db;
-    return db.insert('coupons', {
+    print("coupon added");
+    return _db.insert('coupons', {
       'title': coupon.title,
       'code': coupon.code,
       'created_at': coupon.createdAt.toIso8601String(),
@@ -38,13 +37,7 @@ class CouponsRepository {
   }
 
   Future<void> markUsed(int id) async {
-    final db = await _db;
-    await db.update(
-      'coupons',
-      {'used': 1},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await _db.update('coupons', {'used': 1}, where: 'id = ?', whereArgs: [id]);
   }
 
   Coupon _fromRow(Map<String, Object?> row) {

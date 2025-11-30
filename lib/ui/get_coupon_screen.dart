@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../state/coupons_controller.dart';
+import '../services/coupons_service.dart';
 
 class GetCouponScreen extends StatelessWidget {
   const GetCouponScreen({super.key});
@@ -12,10 +12,7 @@ class GetCouponScreen extends StatelessWidget {
     return Center(
       child: ElevatedButton(
         onPressed: () {
-          controller.addCoupon(
-            'Test coupon',
-            'CODE-${DateTime.now().millisecondsSinceEpoch}',
-          );
+          controller.requestCoupon();
         },
         child: const Text('Get Coupon'),
       ),

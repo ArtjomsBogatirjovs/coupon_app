@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../state/coupons_controller.dart';
+import '../services/coupons_service.dart';
 
 class UsedCouponsScreen extends StatelessWidget {
   const UsedCouponsScreen({super.key});
@@ -21,10 +21,7 @@ class UsedCouponsScreen extends StatelessWidget {
       itemCount: controller.used.length,
       itemBuilder: (ctx, i) {
         final c = controller.used[i];
-        return ListTile(
-          title: Text(c.title),
-          subtitle: Text(c.code),
-        );
+        return ListTile(title: Text(c.title), subtitle: Text(c.code));
       },
     );
   }
