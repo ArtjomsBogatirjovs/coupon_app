@@ -53,7 +53,8 @@ class EmailService {
 
   SendEmailResult createResult(EmailEntry? existed, EmailEntry sent) {
     String? warningText;
-    if (existed != null &&
+    if (!_isInfiniteGmailEnabled() &&
+        existed != null &&
         existed.lastSentBasicMail != null &&
         sent.lastSentBasicMail != null &&
         sent.lastSentBasicMail! - existed.lastSentBasicMail! < _monthMs) {
