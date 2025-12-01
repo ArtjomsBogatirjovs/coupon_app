@@ -56,5 +56,14 @@ class AppDatabase {
         error TEXT
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE emails (
+        mail text primary key,
+        last_sent text NOT NULL,
+        times_sent integer,
+        is_gmail INTEGER NOT NULL,
+      )
+    ''');
   }
 }

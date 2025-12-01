@@ -1,3 +1,4 @@
+import 'package:coupon_app/services/coupons_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../core/coupon_controller.dart';
@@ -9,13 +10,14 @@ class AvailableCouponsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<CouponsController>();
+    final service = context.watch<CouponsService>();
 
     return CouponsListView(
       loading: controller.loading,
       coupons: controller.available,
       emptyText: 'No available coupons',
       showMarkUsed: true,
-      onMarkUsed: (c) => controller.markUsed(c.id!),
+      onMarkUsed: (c) => service.markUsed(c.id!),
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:coupon_app/ui/settings_screen.dart';
 import 'package:coupon_app/ui/used_coupons_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api/ten_minute_mail_api.dart';
 import 'core/coupon_controller.dart';
 import 'core/settings_controller.dart';
@@ -20,27 +21,29 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final db = await AppDatabase.instance.database;
-
   final apiClient = await ApiClient.create();
+
   final tenMinuteMailApi = TenMinuteMailApi(apiClient);
   final generateCouponApi = GenerateCouponApi(apiClient);
   final couponViewApi = CouponViewApi(apiClient);
 
+  final prefs = await SharedPreferences.getInstance();
+
   runApp(
     MultiProvider(
       providers: [
-        Provider.value(value: tenMinuteMailApi),
-        Provider.value(value: apiClient),
-        Provider.value(value: generateCouponApi),
-        Provider.value(value: couponViewApi),
-
         Provider(create: (_) => CouponsRepository(db)),
         Provider(create: (_) => CouponJobsRepository(db)),
         Provider(create: (_) => CouponJobsRunner()),
+        ChangeNotifierProvider(create: (_) => SettingsController(prefs)),
         ChangeNotifierProvider(
           create: (ctx) =>
               CouponsController(ctx.read<CouponsRepository>())..notifyChanged(),
         ),
+        Provider.value(value: tenMinuteMailApi),
+        Provider.value(value: apiClient),
+        Provider.value(value: generateCouponApi),
+        Provider.value(value: couponViewApi),
         Provider(
           create: (ctx) => CouponsService(
             tenMinuteMailApi,
@@ -52,7 +55,6 @@ Future<void> main() async {
             couponViewApi,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => SettingsController()),
       ],
       child: const CouponsApp(),
     ),
@@ -80,33 +82,96 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = [
-      const GetCouponScreen(),
-      const AvailableCouponsScreen(),
-      const UsedCouponsScreen(),
-      const SettingsScreen(),
+    final settings = context.watch<SettingsController>();
+    final showUsed = settings.showUsedCoupons;
+
+    final effectiveIndex = _effectiveIndexFromLogical(_index, showUsed);
+
+    final items = <BottomNavigationBarItem>[
+      const BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Get'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.coffee),
+        label: 'Available',
+      ),
+      if (showUsed)
+        const BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Used'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.settings),
+        label: 'Settings',
+      ),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Coffee Coupons')),
-      body: tabs[_index],
+      body: _buildBody(showUsed),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         backgroundColor: Colors.white,
-        currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Get'),
-          BottomNavigationBarItem(icon: Icon(Icons.coffee), label: 'Available'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Used'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        currentIndex: effectiveIndex,
+        onTap: (i) {
+          final logical = _logicalIndexFromEffective(i, showUsed);
+          setState(() {
+            _index = logical;
+          });
+        },
+        items: items,
       ),
     );
+  }
+
+  Widget _buildBody(bool showUsed) {
+    switch (_index) {
+      case 0:
+        return const GetCouponScreen();
+      case 1:
+        return const AvailableCouponsScreen();
+      case 2:
+        if (showUsed) {
+          return const UsedCouponsScreen();
+        }
+        return const AvailableCouponsScreen();
+      case 3:
+        return const SettingsScreen();
+      default:
+        return const GetCouponScreen();
+    }
+  }
+
+  int _effectiveIndexFromLogical(int logical, bool showUsed) {
+    if (showUsed) {
+      if (logical < 0 || logical > 3) return 0;
+      return logical;
+    } else {
+      switch (logical) {
+        case 0:
+          return 0;
+        case 1:
+          return 1;
+        case 2:
+          return 1;
+        case 3:
+          return 2;
+        default:
+          return 0;
+      }
+    }
+  }
+
+  int _logicalIndexFromEffective(int effective, bool showUsed) {
+    if (showUsed) {
+      return effective;
+    } else {
+      switch (effective) {
+        case 0:
+          return 0;
+        case 1:
+          return 1;
+        case 2:
+          return 3;
+        default:
+          return 0;
+      }
+    }
   }
 }

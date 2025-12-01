@@ -21,9 +21,4 @@ class CouponsController extends ChangeNotifier {
     loading = false;
     notifyListeners();
   }
-
-  Future<void> markUsed(int id) async {
-    await _couponsRepository.markUsed(id);
-    await notifyChanged();
-  }
 }

@@ -32,10 +32,29 @@ class CouponsService {
     this._couponViewApi,
   );
 
+  Future<void> markUsed(int id) async {
+    await _couponsRepository.markUsed(id);
+    await _couponsController.notifyChanged();
+  }
+
+  Future<void> deleteAllUsed() async {
+    await _couponsRepository.deleteAllUsed();
+    await _couponsController.notifyChanged();
+  }
+
+  Future<void> deleteAllAvailable() async {
+    await _couponsRepository.deleteAllAvailable();
+    await _couponsController.notifyChanged();
+  }
+
   Future<void> requestCoupon() async {
     TempMailAddressResponse address = await _tenMinuteMailApi
         .createNewAddress();
     _startCouponJob(address);
+  }
+
+  Future<void> sendCouponToEmail(String email) async {
+    await _generateCouponApi.generateCoupon(email);
   }
 
   Future<void> _startCouponJob(TempMailAddressResponse address) async {
@@ -54,10 +73,10 @@ class CouponsService {
 
     await _couponJobsRepository.insertJob(job);
 
-    _couponJobsRunner.call(processPendingJobs);
+    _couponJobsRunner.call(_processPendingJobs);
   }
 
-  Future<bool> processPendingJobs() async {
+  Future<bool> _processPendingJobs() async {
     final jobs = await _couponJobsRepository.getPendingJobs();
     if (jobs.isEmpty) {
       return false;
@@ -102,7 +121,7 @@ class CouponsService {
         return;
       }
 
-      await insertCouponJob(coupon);
+      await insertCoupon(coupon);
 
       final history = CouponJobHistory(
         mail: job.mail,
@@ -128,7 +147,7 @@ class CouponsService {
     }
   }
 
-  Future<void> insertCouponJob(Coupon coupon) async {
+  Future<void> insertCoupon(Coupon coupon) async {
     await _couponsRepository.insert(coupon);
     _couponsController.notifyChanged();
   }

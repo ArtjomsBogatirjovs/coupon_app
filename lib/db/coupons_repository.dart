@@ -37,6 +37,24 @@ class CouponsRepository {
     });
   }
 
+  Future<void> deleteAllUsed() async {
+    int rowAffected = await _db.delete(
+      'coupons',
+      where: 'used = ?',
+      whereArgs: [1],
+    );
+    print("Deleted $rowAffected records");
+  }
+
+  Future<void> deleteAllAvailable() async {
+    int rowAffected = await _db.delete(
+      'coupons',
+      where: 'used = ?',
+      whereArgs: [0],
+    );
+    print("Deleted $rowAffected records");
+  }
+
   Future<void> markUsed(int id) async {
     await _db.update('coupons', {'used': 1}, where: 'id = ?', whereArgs: [id]);
   }
