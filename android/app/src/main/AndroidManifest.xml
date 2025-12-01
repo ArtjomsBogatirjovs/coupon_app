@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="coupon_app"
+        android:label="Coffee Donor"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
