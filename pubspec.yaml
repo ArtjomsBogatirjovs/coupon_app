@@ -54,7 +54,8 @@ dev_dependencies:
     sdk: flutter
   build_runner: ^2.1.11
   json_serializable: ^6.2.0
-  flutter_native_splash: ^2.4.0
+  flutter_native_splash: ^2.4.7
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -64,13 +65,22 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/splash.png
   android: true
   ios: true
   fullscreen: true
-  android_gravity: center
-  ios_content_mode: scaleAspectFill
+
+  color: "#FCF8F2"
+  image: assets/app_icon2.png
+
+  android_12:
+    color: "#FCF8F2"
+    image: assets/app_icon2.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
