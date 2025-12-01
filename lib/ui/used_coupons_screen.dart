@@ -10,11 +10,13 @@ class UsedCouponsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<CouponsController>();
 
-    return CouponsListView(
-      loading: controller.loading,
-      coupons: controller.used,
-      emptyText: 'No used coupons',
-      showMarkUsed: false,
+    return SafeArea(
+      child: CouponsListView(
+        loading: controller.loading,
+        coupons: controller.used,
+        emptyText: 'No used coupons',
+        showMarkUsed: false,
+      ),
     );
   }
 }

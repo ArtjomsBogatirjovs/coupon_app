@@ -12,12 +12,14 @@ class AvailableCouponsScreen extends StatelessWidget {
     final controller = context.watch<CouponsController>();
     final service = context.watch<CouponsService>();
 
-    return CouponsListView(
-      loading: controller.loading,
-      coupons: controller.available,
-      emptyText: 'No available coupons',
-      showMarkUsed: true,
-      onMarkUsed: (c) => service.markUsed(c.id!),
+    return SafeArea(
+      child: CouponsListView(
+        loading: controller.loading,
+        coupons: controller.available,
+        emptyText: 'No available coupons',
+        showMarkUsed: true,
+        onMarkUsed: (c) => service.markUsed(c.id!),
+      ),
     );
   }
 }
