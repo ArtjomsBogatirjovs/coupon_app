@@ -40,11 +40,8 @@ class TempMailInboxResponse {
     required this.attachments,
   });
 
-  factory TempMailInboxResponse.fromJson(
-      Map<String, dynamic> json,
-      ) =>
+  factory TempMailInboxResponse.fromJson(Map<String, dynamic> json) =>
       _$TenMinuteMailMessageResponseFromJson(json);
 
-  Map<String, dynamic> toJson() =>
-      _$TenMinuteMailMessageResponseToJson(this);
+  Map<String, dynamic> toJson() => _$TenMinuteMailMessageResponseToJson(this);
 }

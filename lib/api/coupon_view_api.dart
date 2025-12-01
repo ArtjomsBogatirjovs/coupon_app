@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-
 import '../core/constants.dart';
 import 'api_client.dart';
 

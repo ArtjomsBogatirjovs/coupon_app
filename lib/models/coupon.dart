@@ -4,6 +4,7 @@ class Coupon {
   final String code;
   final DateTime createdAt;
   final bool used;
+  final String? link;
 
   Coupon({
     this.id,
@@ -11,5 +12,6 @@ class Coupon {
     required this.code,
     required this.createdAt,
     required this.used,
+    this.link,
   });
 }

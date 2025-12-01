@@ -1,24 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/coupons_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../core/coupon_controller.dart';
+import '../core/settings_controller.dart';
 
-class AvailableCouponsScreen extends StatefulWidget {
+class AvailableCouponsScreen extends StatelessWidget {
   const AvailableCouponsScreen({super.key});
-
-  @override
-  State<AvailableCouponsScreen> createState() => _AvailableCouponsScreenState();
-}
-
-class _AvailableCouponsScreenState extends State<AvailableCouponsScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = context.read<CouponsController>();
-      controller.loadAll();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +26,13 @@ class _AvailableCouponsScreenState extends State<AvailableCouponsScreen> {
         return ListTile(
           title: Text(c.title),
           subtitle: Text(c.code),
+          onTap: () {
+            final settings = context.read<SettingsController>();
+
+            if (settings.openOnTap && c.link != null) {
+              launchUrl(Uri.parse(c.link!));
+            }
+          },
           trailing: IconButton(
             icon: const Icon(Icons.check),
             onPressed: () => controller.markUsed(c.id!),

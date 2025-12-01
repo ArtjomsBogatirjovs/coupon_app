@@ -7,7 +7,7 @@ class GetCouponScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<CouponsController>();
+    final controller = context.watch<CouponsService>();
 
     return Center(
       child: ElevatedButton(

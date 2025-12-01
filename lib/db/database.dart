@@ -27,6 +27,7 @@ class AppDatabase {
       CREATE TABLE coupons (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
+        link TEXT,
         code TEXT NOT NULL,
         created_at TEXT NOT NULL,
         used INTEGER NOT NULL

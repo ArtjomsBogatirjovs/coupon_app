@@ -7,10 +7,13 @@ import 'package:coupon_app/jobs/coupon_jobs_runner.dart';
 import 'package:coupon_app/services/coupons_service.dart';
 import 'package:coupon_app/ui/available_coupons_screen.dart';
 import 'package:coupon_app/ui/get_coupon_screen.dart';
+import 'package:coupon_app/ui/settings_screen.dart';
 import 'package:coupon_app/ui/used_coupons_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'api/ten_minute_mail_api.dart';
+import 'core/coupon_controller.dart';
+import 'core/settings_controller.dart';
 import 'db/coupons_repository.dart';
 
 Future<void> main() async {
@@ -33,27 +36,23 @@ Future<void> main() async {
 
         Provider(create: (_) => CouponsRepository(db)),
         Provider(create: (_) => CouponJobsRepository(db)),
-        Provider<CouponJobsRunner>(
-          create: (ctx) {
-            final runner = CouponJobsRunner(
-              ctx.read<CouponJobsRepository>(),
-              ctx.read<CouponsRepository>(),
-              tenMinuteMailApi,
-              couponViewApi,
-            );
-            runner.ensureRunning();
-            return runner;
-          },
-        ),
+        Provider(create: (_) => CouponJobsRunner()),
         ChangeNotifierProvider(
-          create: (ctx) => CouponsController(
-            ctx.read<CouponsRepository>(),
+          create: (ctx) =>
+              CouponsController(ctx.read<CouponsRepository>())..notifyChanged(),
+        ),
+        Provider(
+          create: (ctx) => CouponsService(
             tenMinuteMailApi,
             generateCouponApi,
             ctx.read<CouponJobsRepository>(),
             ctx.read<CouponJobsRunner>(),
-          )..loadAll(),
+            ctx.read<CouponsController>(),
+            ctx.read<CouponsRepository>(),
+            couponViewApi,
+          ),
         ),
+        ChangeNotifierProvider(create: (_) => SettingsController()),
       ],
       child: const CouponsApp(),
     ),
@@ -85,21 +84,27 @@ class _MainScreenState extends State<MainScreen> {
       const GetCouponScreen(),
       const AvailableCouponsScreen(),
       const UsedCouponsScreen(),
+      const SettingsScreen(),
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Coupons')),
+      appBar: AppBar(title: const Text('Coffee Coupons')),
       body: tabs[_index],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        backgroundColor: Colors.white,
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Get a coupon'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.card_giftcard),
-            label: 'Available',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Get'),
+          BottomNavigationBarItem(icon: Icon(Icons.coffee), label: 'Available'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Used'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
       ),
     );

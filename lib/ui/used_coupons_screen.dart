@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/coupons_service.dart';
+import '../core/coupon_controller.dart';
 
 class UsedCouponsScreen extends StatelessWidget {
   const UsedCouponsScreen({super.key});

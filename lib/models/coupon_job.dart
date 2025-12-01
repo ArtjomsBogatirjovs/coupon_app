@@ -30,8 +30,7 @@ class CouponJob {
     id: map['id'] as int?,
     mail: map['mail'] as String,
     cookieHeader: map['cookie_header'] as String,
-    createdAt:
-    DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+    createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
     status: CouponJobStatus.values[map['status'] as int],
     tries: map['tries'] as int? ?? 0,
   );
