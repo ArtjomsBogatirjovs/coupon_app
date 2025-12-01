@@ -33,6 +33,7 @@ class CouponsRepository {
       'code': coupon.code,
       'created_at': coupon.createdAt.toIso8601String(),
       'used': coupon.used ? 1 : 0,
+      'link': coupon.link,
     });
   }
 
@@ -47,6 +48,7 @@ class CouponsRepository {
       code: row['code'] as String,
       createdAt: DateTime.parse(row['created_at'] as String),
       used: (row['used'] as int) == 1,
+      link: (row['link'] as String?),
     );
   }
 }
