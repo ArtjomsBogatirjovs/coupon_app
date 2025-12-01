@@ -5,6 +5,7 @@ import 'package:coupon_app/db/coupon_jobs_repository.dart';
 import 'package:coupon_app/db/database.dart';
 import 'package:coupon_app/jobs/coupon_jobs_runner.dart';
 import 'package:coupon_app/services/coupons_service.dart';
+import 'package:coupon_app/services/email_service.dart';
 import 'package:coupon_app/ui/available_coupons_screen.dart';
 import 'package:coupon_app/ui/get_coupon_screen.dart';
 import 'package:coupon_app/ui/settings_screen.dart';
@@ -16,6 +17,7 @@ import 'api/ten_minute_mail_api.dart';
 import 'core/coupon_controller.dart';
 import 'core/settings_controller.dart';
 import 'db/coupons_repository.dart';
+import 'db/emails_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,7 @@ Future<void> main() async {
       providers: [
         Provider(create: (_) => CouponsRepository(db)),
         Provider(create: (_) => CouponJobsRepository(db)),
+        Provider(create: (_) => EmailsRepository(db)),
         Provider(create: (_) => CouponJobsRunner()),
         ChangeNotifierProvider(create: (_) => SettingsController(prefs)),
         ChangeNotifierProvider(
@@ -45,6 +48,12 @@ Future<void> main() async {
         Provider.value(value: generateCouponApi),
         Provider.value(value: couponViewApi),
         Provider(
+          create: (ctx) => EmailService(
+            ctx.read<EmailsRepository>(),
+            ctx.read<SettingsController>(),
+          ),
+        ),
+        Provider(
           create: (ctx) => CouponsService(
             tenMinuteMailApi,
             generateCouponApi,
@@ -53,6 +62,7 @@ Future<void> main() async {
             ctx.read<CouponsController>(),
             ctx.read<CouponsRepository>(),
             couponViewApi,
+            ctx.read<EmailService>(),
           ),
         ),
       ],

@@ -4,14 +4,17 @@ import 'package:coupon_app/core/coupon_controller.dart';
 import 'package:coupon_app/db/coupon_jobs_repository.dart';
 import 'package:coupon_app/db/coupons_repository.dart';
 import 'package:coupon_app/jobs/coupon_jobs_runner.dart';
+import 'package:coupon_app/models/email.dart';
 import 'package:html/parser.dart' as html;
 import '../api/ten_minute_mail_api.dart';
 import '../core/constants.dart';
 import '../models/coupon.dart';
 import '../models/coupon_job.dart';
 import '../models/coupon_job_history.dart';
+import '../models/send_email_result.dart';
 import '../models/temp_mail_address_response.dart';
 import '../models/temp_mail_inbox_response.dart';
+import 'email_service.dart';
 
 class CouponsService {
   final TenMinuteMailApi _tenMinuteMailApi;
@@ -21,6 +24,7 @@ class CouponsService {
   final CouponJobsRunner _couponJobsRunner;
   final CouponsController _couponsController;
   final CouponViewApi _couponViewApi;
+  final EmailService _emailService;
 
   CouponsService(
     this._tenMinuteMailApi,
@@ -30,6 +34,7 @@ class CouponsService {
     this._couponsController,
     this._couponsRepository,
     this._couponViewApi,
+    this._emailService,
   );
 
   Future<void> markUsed(int id) async {
@@ -53,8 +58,18 @@ class CouponsService {
     _startCouponJob(address);
   }
 
-  Future<void> sendCouponToEmail(String email) async {
-    await _generateCouponApi.generateCoupon(email);
+  Future<SendEmailResult> sendCouponToEmail(String email) async {
+    final EmailEntry? existedEntry = await _emailService.getEmailEntry(email);
+    EmailEntry emailEntry;
+    if (existedEntry == null) {
+      emailEntry = _emailService.createNewEntry(email);
+    } else {
+      emailEntry = _emailService.incrementSendStats(existedEntry);
+    }
+    final emailToSent = _emailService.buildSendAddress(emailEntry);
+    await _generateCouponApi.generateCoupon(emailToSent);
+    await _emailService.createOrUpdate(emailEntry);
+    return _emailService.createResult(existedEntry, emailEntry);
   }
 
   Future<void> _startCouponJob(TempMailAddressResponse address) async {

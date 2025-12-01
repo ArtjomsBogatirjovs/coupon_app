@@ -21,6 +21,7 @@ class GenerateCouponApi {
         validateStatus: (_) => true,
       ),
     );
+    print('Coupon request sent to $email');
     print('STATUS: ${response.statusCode}');
     print('BODY: ${response.data}');
   }

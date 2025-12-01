@@ -235,8 +235,15 @@ class _GetCouponScreenState extends State<GetCouponScreen> {
 
     setState(() => _sending = true);
     try {
-      await service.sendCouponToEmail(email);
-
+      final result = await service.sendCouponToEmail(email);
+      if (result.warningText != null) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(result.warningText!),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
       if (settings.rememberEmail) {
         await settings.setSavedEmail(email);
       }

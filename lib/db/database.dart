@@ -24,45 +24,46 @@ class AppDatabase {
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE coupons (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        link TEXT,
-        code TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        used INTEGER NOT NULL
+      create table coupons (
+        id integer primary key autoincrement,
+        title text not null,
+        link text,
+        code text not null,
+        created_at text not null,
+        used integer not null
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE coupon_jobs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        mail TEXT NOT NULL,
-        cookie_header TEXT NOT NULL,
-        created_at INTEGER NOT NULL,
-        status INTEGER NOT NULL,
-        tries INTEGER NOT NULL
+      create table coupon_jobs (
+        id integer primary key autoincrement,
+        mail text not null,
+        cookie_header text not null,
+        created_at integer not null,
+        status integer not null,
+        tries integer not null
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE coupon_jobs_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        mail TEXT NOT NULL,
-        cookie_header TEXT NOT NULL,
-        created_at INTEGER NOT NULL,
-        finished_at INTEGER NOT NULL,
-        success INTEGER NOT NULL,
-        error TEXT
+      create table coupon_jobs_history (
+        id integer primary key autoincrement,
+        mail text not null,
+        cookie_header text not null,
+        created_at integer not null,
+        finished_at integer not null,
+        success integer not null,
+        error text
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE emails (
+      create table emails (
         mail text primary key,
-        last_sent text NOT NULL,
-        times_sent integer,
-        is_gmail INTEGER NOT NULL,
+        last_sent integer not null,
+        last_sent_basic_mail integer,
+        times_sent integer not null default 1,
+        is_gmail integer not null check (is_gmail IN (0,1))
       )
     ''');
   }
