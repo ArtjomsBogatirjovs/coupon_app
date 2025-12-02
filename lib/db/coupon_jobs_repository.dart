@@ -6,8 +6,8 @@ class CouponJobsRepository {
 
   CouponJobsRepository(this._db);
 
-  Future<int> insertJob(CouponJob job) =>
-      _db.insert('coupon_jobs', job.toMap());
+  Future<int> insertJob(CouponJob job) async =>
+     await _db.insert('coupon_jobs', job.toMap());
 
   Future<List<CouponJob>> getPendingJobs() async {
     final rows = await _db.query(

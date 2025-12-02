@@ -111,6 +111,14 @@ class _GetCouponScreenState extends State<GetCouponScreen> {
               onPressed: () {
                 final service = context.read<CouponsService>();
                 service.requestCoupon();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Coupon generation started… usually takes ~30 seconds',
+                    ),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
               },
               child: const Text('Generate coupon'),
             ),

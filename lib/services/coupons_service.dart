@@ -54,7 +54,23 @@ class CouponsService {
   Future<void> requestCoupon() async {
     TempMailAddressResponse address = await _tenMinuteMailApi
         .createNewAddress();
-    _startCouponJob(address);
+
+    await _generateCouponApi.generateCoupon(address.address);
+    final cookieHeader = await _tenMinuteMailApi.getCookies();
+    final cookiesString = cookieHeader
+        .map((c) => '${c.name}=${c.value}')
+        .join('; ');
+
+    final job = CouponJob(
+      cookieHeader: cookiesString,
+      mail: address.address,
+      createdAt: DateTime.now(),
+      status: CouponJobStatus.pending,
+    );
+
+    await _couponJobsRepository.insertJob(job);
+    _couponJobsRunner.call(_processPendingJobs);
+    _tenMinuteMailApi.deleteCookies();
   }
 
   Future<SendEmailResult> sendCouponToEmail(String email) async {
@@ -69,25 +85,6 @@ class CouponsService {
     await _generateCouponApi.generateCoupon(emailToSent);
     await _emailService.createOrUpdate(emailEntry);
     return _emailService.createResult(existedEntry, emailEntry);
-  }
-
-  Future<void> _startCouponJob(TempMailAddressResponse address) async {
-    await _generateCouponApi.generateCoupon(address.address);
-
-    final cookieHeader = await _tenMinuteMailApi.getCookies();
-    final cookiesString = cookieHeader
-        .map((c) => '${c.name}=${c.value}')
-        .join('; ');
-    final job = CouponJob(
-      cookieHeader: cookiesString,
-      mail: address.address,
-      createdAt: DateTime.now(),
-      status: CouponJobStatus.pending,
-    );
-
-    await _couponJobsRepository.insertJob(job);
-
-    _couponJobsRunner.call(_processPendingJobs);
   }
 
   Future<bool> _processPendingJobs() async {
