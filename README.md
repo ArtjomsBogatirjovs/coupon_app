@@ -6,8 +6,6 @@ coffee coupons after donation.
 > ⚠️ This is a **personal pet project** for my own use and Dart/Flutter practice.  
 > It is not affiliated with Narvesen, any blood donation center, or any other organization.
 
----
-
 ## What the app does
 
 After donating blood in Latvia, you can get a Narvesen coffee coupon via a link and an e-mail
@@ -30,8 +28,6 @@ This app:
 The main goal is to remove repetitive manual steps for a **frequent donor** and to have some fun
 writing Dart/Flutter code.
 
----
-
 ## Requirements
 
 - Flutter (stable channel) installed
@@ -40,8 +36,6 @@ writing Dart/Flutter code.
 
 The app targets **Android** only.  
 If you want iOS – feel free to pay Apple for the Developer Program and wire it up yourself. 🙂
-
----
 
 ## Setup & Run on Android
 
@@ -53,8 +47,6 @@ From the project root:
 flutter pub get
 ```
 
----
-
 ### 2. Generate JSON serialization code
 
 The project uses `json_serializable` / `build_runner` for `*.g.dart` files.
@@ -64,7 +56,6 @@ Generate once:
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
----
 
 ### 3. Generate launcher icons & splash screen
 
@@ -84,8 +75,6 @@ dart run flutter_native_splash:create
 
 Run these again if you change the icon or splash assets/config.
 
----
-
 ### 4. Run on device / emulator (debug)
 
 Connect an Android device with USB debugging enabled or start an emulator, then:
@@ -95,8 +84,6 @@ flutter run
 ```
 
 This builds and launches a debug build of the app.
-
----
 
 ## Build a release APK (Android)
 
@@ -120,8 +107,6 @@ This builds and launches a debug build of the app.
 
 4. Copy/install this APK to your phone (ADB, file transfer, etc.) and install it manually.
 
----
-
 ## Project notes
 
 * Written in **Dart + Flutter**.
@@ -131,8 +116,6 @@ This builds and launches a debug build of the app.
     * simple job runner to fetch coupons in background,
     * some basic settings (remember e-mail, showing used coupons, etc.).
 * All logic is optimized for **my own donor flow in Latvia**
-
----
 
 ## Disclaimer
 
@@ -151,8 +134,6 @@ This builds and launches a debug build of the app.
 
 If the official rules or terms say something different, **they win, not this app**.
 
----
-
 ## Legal / ethics note
 
 * The app **does not hack** or bypass security; it only automates what you can do manually:
@@ -167,8 +148,6 @@ If the official rules or terms say something different, **they win, not this app
     * they may change behavior at any time.
 * Please be reasonable:
   the whole idea is “you donated blood → you get a coffee”, not “infinite free coffee”.
-
----
 
 ## Why this exists
 
