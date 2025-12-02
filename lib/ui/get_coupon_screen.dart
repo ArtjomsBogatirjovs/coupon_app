@@ -114,7 +114,7 @@ class _GetCouponScreenState extends State<GetCouponScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'Coupon generation started… usually takes ~30 seconds',
+                      'Generating coupon... usually takes ~30 seconds',
                     ),
                     duration: Duration(seconds: 3),
                   ),
