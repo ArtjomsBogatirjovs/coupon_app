@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 import '../models/coupon_job.dart';
-import '../models/coupon_job_history.dart';
 
 class CouponJobsRepository {
   final Database _db;
@@ -23,7 +22,12 @@ class CouponJobsRepository {
     await _db.delete('coupon_jobs', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<void> insertHistory(CouponJobHistory history) async {
-    await _db.insert('coupon_jobs_history', history.toMap());
+  Future<void> incrementTries(CouponJob job) async {
+    await _db.update(
+      'coupon_jobs',
+      {'tries': job.tries + 1},
+      where: 'id = ?',
+      whereArgs: [job.id],
+    );
   }
 }

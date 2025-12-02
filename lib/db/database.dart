@@ -46,18 +46,6 @@ class AppDatabase {
     ''');
 
     await db.execute('''
-      create table coupon_jobs_history (
-        id integer primary key autoincrement,
-        mail text not null,
-        cookie_header text not null,
-        created_at integer not null,
-        finished_at integer not null,
-        success integer not null,
-        error text
-      )
-    ''');
-
-    await db.execute('''
       create table emails (
         mail text primary key,
         last_sent integer not null,

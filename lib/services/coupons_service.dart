@@ -10,7 +10,6 @@ import '../api/ten_minute_mail_api.dart';
 import '../core/constants.dart';
 import '../models/coupon.dart';
 import '../models/coupon_job.dart';
-import '../models/coupon_job_history.dart';
 import '../models/send_email_result.dart';
 import '../models/temp_mail_address_response.dart';
 import '../models/temp_mail_inbox_response.dart';
@@ -105,7 +104,7 @@ class CouponsService {
     for (final job in jobs) {
       final ageMinutes = now.difference(job.createdAt).inMinutes;
 
-      if (job.tries >= 10 ||
+      if (job.tries >= AppConstants.maxTries ||
           job.status != CouponJobStatus.pending ||
           ageMinutes >= AppConstants.jobExpiringInMinutes) {
         expiredJobs.add(job);
@@ -126,38 +125,18 @@ class CouponsService {
   }
 
   Future<void> _processJob(CouponJob job) async {
-    final startedAt = job.createdAt;
-    final now = DateTime.now();
-
     try {
       final coupon = await _tryFetchCouponWithCookies(job);
 
       if (coupon == null) {
+        _couponJobsRepository.incrementTries(job);
         return;
       }
 
       await insertCoupon(coupon);
 
-      final history = CouponJobHistory(
-        mail: job.mail,
-        cookieHeader: job.cookieHeader,
-        createdAt: startedAt,
-        finishedAt: now,
-        success: true,
-        error: null,
-      );
-      await _couponJobsRepository.insertHistory(history);
       await _couponJobsRepository.deleteJob(job.id!);
     } catch (e) {
-      final history = CouponJobHistory(
-        mail: job.mail,
-        cookieHeader: job.cookieHeader,
-        createdAt: startedAt,
-        finishedAt: now,
-        success: false,
-        error: e.toString(),
-      );
-      await _couponJobsRepository.insertHistory(history);
       await _couponJobsRepository.deleteJob(job.id!);
     }
   }
@@ -168,16 +147,6 @@ class CouponsService {
   }
 
   Future<void> _handleOldJob(CouponJob job) async {
-    final history = CouponJobHistory(
-      mail: job.mail,
-      cookieHeader: job.cookieHeader,
-      createdAt: job.createdAt,
-      finishedAt: DateTime.now(),
-      success: false,
-      error: 'Job expired after 10 minutes',
-    );
-
-    await _couponJobsRepository.insertHistory(history);
     await _couponJobsRepository.deleteJob(job.id!);
   }
 
