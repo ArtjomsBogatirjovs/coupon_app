@@ -2,6 +2,7 @@ import 'package:coupon_app/services/coupons_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/settings_controller.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -93,7 +94,12 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             title: const Text('About app'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutScreen()),
+              );
+            },
           ),
         ],
       ),
