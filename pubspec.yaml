@@ -25,6 +25,7 @@ dependencies:
   intl: ^0.20.2
   email_validator: ^3.0.0
   cupertino_icons: ^1.0.8
+  flutter_local_notifications: ^19.5.0
 
 dev_dependencies:
   flutter_test:

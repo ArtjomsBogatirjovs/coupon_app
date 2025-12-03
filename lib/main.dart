@@ -15,12 +15,15 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api/ten_minute_mail_api.dart';
 import 'core/coupon_controller.dart';
+import 'core/notification_service.dart';
 import 'core/settings_controller.dart';
 import 'db/coupons_repository.dart';
 import 'db/emails_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService.init();
 
   final db = await AppDatabase.instance.database;
   final apiClient = await ApiClient.create();

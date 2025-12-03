@@ -8,6 +8,7 @@ import 'package:coupon_app/models/email.dart';
 import 'package:html/parser.dart' as html;
 import '../api/ten_minute_mail_api.dart';
 import '../core/constants.dart';
+import '../core/notification_service.dart';
 import '../models/coupon.dart';
 import '../models/coupon_job.dart';
 import '../models/send_email_result.dart';
@@ -141,6 +142,7 @@ class CouponsService {
   Future<void> insertCoupon(Coupon coupon) async {
     await _couponsRepository.insert(coupon);
     _couponsController.notifyChanged();
+    await NotificationService.showCouponGenerated(coupon.code);
   }
 
   Future<void> _handleOldJob(CouponJob job) async {
