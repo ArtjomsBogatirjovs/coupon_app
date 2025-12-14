@@ -47,9 +47,7 @@ class AppLogger {
     try {
       await _logsRepo.insert(record);
       _logsController.notifyChanged();
-    } catch (_) {
-      //TODO popup
-    }
+    } catch (_) {}
   }
 }
 
