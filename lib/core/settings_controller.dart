@@ -3,7 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsController extends ChangeNotifier {
   static const _showUsedKey = 'show_used_coupons';
-  static const _darkThemeKey = 'dark_theme';
+  static const _showLogsKey = 'show_logs';
+  static const _logsEnabledKey = 'logs_enabled';
   static const _openOnTapKey = 'open_coupon_on_tap';
   static const _infiniteGmailKey = 'infinite_gmail';
   static const _rememberEmailKey = 'remember_email';
@@ -11,7 +12,8 @@ class SettingsController extends ChangeNotifier {
 
   bool _infiniteGmail = false;
   bool _showUsedCoupons = true;
-  bool _darkTheme = false;
+  bool _showLogs = false;
+  bool _logsEnabled = true;
   bool _openOnTap = true;
   bool _rememberEmail = false;
   String? _savedEmail;
@@ -20,7 +22,9 @@ class SettingsController extends ChangeNotifier {
 
   bool get showUsedCoupons => _showUsedCoupons;
 
-  bool get darkTheme => _darkTheme;
+  bool get showLogs => _showLogs;
+
+  bool get logsEnabled => _logsEnabled;
 
   bool get infiniteGmail => _infiniteGmail;
 
@@ -34,12 +38,13 @@ class SettingsController extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    _showUsedCoupons = _prefs.getBool(_showUsedKey) ?? true;
-    _darkTheme = _prefs.getBool(_darkThemeKey) ?? false;
-    _openOnTap = _prefs.getBool(_openOnTapKey) ?? true;
-    _infiniteGmail = _prefs.getBool(_infiniteGmailKey) ?? true;
-    _rememberEmail = _prefs.getBool(_rememberEmailKey) ?? false;
+    _showUsedCoupons = _prefs.getBool(_showUsedKey) ?? _showUsedCoupons;
+    _openOnTap = _prefs.getBool(_openOnTapKey) ?? _openOnTap;
+    _infiniteGmail = _prefs.getBool(_infiniteGmailKey) ?? _infiniteGmail;
+    _rememberEmail = _prefs.getBool(_rememberEmailKey) ?? _rememberEmail;
     _savedEmail = _prefs.getString(_savedEmailKey);
+    _logsEnabled = _prefs.getBool(_logsEnabledKey) ?? _logsEnabled;
+    _showLogs = _prefs.getBool(_showLogsKey) ?? _showLogs;
 
     notifyListeners();
   }
@@ -62,9 +67,15 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setDarkTheme(bool value) async {
-    _darkTheme = value;
-    await _prefs.setBool(_darkThemeKey, value);
+  Future<void> setShowLogs(bool value) async {
+    _showLogs = value;
+    await _prefs.setBool(_showLogsKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setEnabledLogs(bool value) async {
+    _logsEnabled = value;
+    await _prefs.setBool(_logsEnabledKey, value);
     notifyListeners();
   }
 

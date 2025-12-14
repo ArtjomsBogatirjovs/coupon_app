@@ -1,6 +1,8 @@
+import 'package:coupon_app/core/logs_controller.dart';
 import 'package:coupon_app/services/coupons_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../core/log/logs_repository.dart';
 import '../core/settings_controller.dart';
 import 'about_screen.dart';
 
@@ -35,6 +37,11 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Show used coupons'),
             value: settings.showUsedCoupons,
             onChanged: settings.setShowUsedCoupons,
+          ),
+          SwitchListTile(
+            title: const Text('Show logs'),
+            value: settings.showLogs,
+            onChanged: settings.setShowLogs,
           ),
           SwitchListTile(
             title: const Text('Infinite coupons for Gmail'),
@@ -76,6 +83,15 @@ class SettingsScreen extends StatelessWidget {
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () => _confirmDeleteUsed(context),
               child: const Text('Delete'),
+            ),
+          ),
+          ListTile(
+            title: const Text('Clear logs'),
+            subtitle: const Text('This will clear your event log.'),
+            trailing: FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Colors.black),
+              onPressed: () => _confirmDeleteLogs(context),
+              child: const Text('Clear'),
             ),
           ),
 
@@ -170,5 +186,38 @@ class SettingsScreen extends StatelessWidget {
     messenger.showSnackBar(
       const SnackBar(content: Text('Used coupons deleted')),
     );
+  }
+
+  Future<void> _confirmDeleteLogs(BuildContext context) async {
+    final repo = context.read<LogsRepository>();
+    final controller = context.read<LogsController>();
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: const Text('Clear logs?'),
+              content: const Text('This will clear your event log.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Clear'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!confirmed) return;
+
+    await repo.clear();
+    controller.notifyChanged();
+    messenger.showSnackBar(const SnackBar(content: Text('Event log cleared')));
   }
 }

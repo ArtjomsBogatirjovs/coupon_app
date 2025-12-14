@@ -54,5 +54,20 @@ class AppDatabase {
         is_gmail integer not null check (is_gmail IN (0,1))
       )
     ''');
+
+    await db.execute('''
+      create table logs (
+        id integer primary key autoincrement,
+        timestamp text not null,
+        level text not null,
+        category text not null,
+        message text not null,
+        chain_id text,
+        details text,
+        error_type text,
+        error_stack text,
+        extra_json text
+      );
+    ''');
   }
 }

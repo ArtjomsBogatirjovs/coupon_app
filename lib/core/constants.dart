@@ -8,4 +8,5 @@ class AppConstants {
   static const int maxTries = 30;
   static const String emailSubject = "Kafijas kupons☕";
   static const String emailSender = "@pasts.narvesen.lv";
+  static const String backgroundProcessCouponJobs = 'process_coupon_jobs';
 }
