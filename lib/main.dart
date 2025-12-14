@@ -85,14 +85,12 @@ Future<void> main() async {
   );
 }
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 class CouponsApp extends StatelessWidget {
   const CouponsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: const MainScreen(), navigatorKey: navigatorKey);
+    return MaterialApp(home: const MainScreen());
   }
 }
 

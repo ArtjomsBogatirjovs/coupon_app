@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:coupon_app/api/coupon_view_api.dart';
 import 'package:coupon_app/api/generate_coupon_api.dart';
 import 'package:coupon_app/core/coupon_controller.dart';
@@ -177,7 +175,7 @@ class CouponsService {
     );
     if (jobs.isEmpty) {
       await _log.info('No pending jobs to process', chainId: chainId);
-      return false;
+      return true;
     }
 
     final now = DateTime.now();

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:coupon_app/core/coupon_controller.dart';
 import 'package:coupon_app/core/log/logger.dart';
 import 'package:coupon_app/core/log/logs_repository.dart';
@@ -24,7 +26,7 @@ import 'email_service.dart';
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((String task, inputData) async {
-    WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
     final db = await AppDatabase.instance.database;
     final logRepo = LogsRepository(db);
 
@@ -72,13 +74,13 @@ void callbackDispatcher() {
           emailService: emailService,
         );
 
-        final failed = await couponsService.processPendingJobs(chainId);
+        final success = await couponsService.processPendingJobs(chainId);
         await log.debug(
           'processPendingJobsOnce finished in background',
           chainId: chainId,
-          extra: {'failed': failed},
+          extra: {'success': success},
         );
-        return Future.value(failed);
+        return Future.value(success);
       }
       await log.warning(
         'Unknown background task',
@@ -88,7 +90,7 @@ void callbackDispatcher() {
       return Future.value(true);
     } catch (e, s) {
       final error = BackgroundTaskError(
-        message: 'Background task failed',
+        message: 'Background task success',
         taskName: task,
         cause: e,
         stackTrace: s,
