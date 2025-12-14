@@ -169,11 +169,12 @@ class CouponsService {
       EmailEntry emailEntry;
 
       if (existedEntry == null) {
-        await _log.debug(
-          'Email entry not found, creating new',
-          chainId: chainId,
-        );
         emailEntry = _emailService.createNewEntry(email);
+        await _log.debug(
+          'Creating new email entry',
+          chainId: chainId,
+          extra: emailEntry.toMap(),
+        );
       } else {
         await _log.debug(
           'Email entry found, incrementing stats',
