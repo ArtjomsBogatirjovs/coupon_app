@@ -52,8 +52,8 @@ class CouponJobsRunner {
         final job = entry.key;
         final chainId = entry.value;
         try {
-          final keep = await job(chainId);
-          if (!keep) {
+          final success = await job(chainId);
+          if (success) {
             _jobs.remove(job);
           }
         } catch (e, s) {

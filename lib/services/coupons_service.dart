@@ -134,7 +134,7 @@ class CouponsService {
         initialDelay: const Duration(seconds: 30),
         constraints: Constraints(networkType: NetworkType.connected),
       );
-      return false;
+      return true;
     } catch (e, s) {
       final error = UnknownError(
         message: 'Failed to create coupon',
@@ -145,7 +145,7 @@ class CouponsService {
 
       await _log.errorFrom(error, chainId: chainId);
 
-      return true;
+      return false;
     } finally {
       _tenMinuteMailApi.deleteCookies();
     }
