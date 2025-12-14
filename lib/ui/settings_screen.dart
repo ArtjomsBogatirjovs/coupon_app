@@ -149,10 +149,16 @@ class SettingsScreen extends StatelessWidget {
 
     if (!confirmed) return;
 
-    await service.deleteAllAvailable();
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Available coupons deleted')),
-    );
+    try {
+      await service.deleteAllAvailable();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Available coupons deleted')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Failed to delete available coupons')),
+      );
+    }
   }
 
   Future<void> _confirmDeleteUsed(BuildContext context) async {
@@ -182,10 +188,16 @@ class SettingsScreen extends StatelessWidget {
 
     if (!confirmed) return;
 
-    await service.deleteAllUsed();
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Used coupons deleted')),
-    );
+    try {
+      await service.deleteAllUsed();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Used coupons deleted')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Failed to delete used coupons')),
+      );
+    }
   }
 
   Future<void> _confirmDeleteLogs(BuildContext context) async {

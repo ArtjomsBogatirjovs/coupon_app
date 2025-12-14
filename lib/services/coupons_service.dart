@@ -82,9 +82,10 @@ class CouponsService {
     await _couponsController.notifyChanged();
   }
 
-  Future<void> deleteAllUsed() async {
-    await _couponsRepository.deleteAllUsed();
+  Future<int> deleteAllUsed() async {
+    final deleted = await _couponsRepository.deleteAllUsed();
     await _couponsController.notifyChanged();
+    return deleted;
   }
 
   Future<void> deleteAllAvailable() async {
@@ -151,18 +152,67 @@ class CouponsService {
   }
 
   Future<SendEmailResult> sendCouponToEmail(String email) async {
-    final chainId = 'email: $email - ${DateTime.now().microsecondsSinceEpoch}';
-    final EmailEntry? existedEntry = await _emailService.getEmailEntry(email);
-    EmailEntry emailEntry;
-    if (existedEntry == null) {
-      emailEntry = _emailService.createNewEntry(email);
-    } else {
-      emailEntry = _emailService.incrementSendStats(existedEntry);
+    final chainId = 'email:$email:${DateTime.now().microsecondsSinceEpoch}';
+
+    await _log.info(
+      'Starting send coupon to email',
+      chainId: chainId,
+      extra: {'email': email},
+    );
+
+    try {
+      final EmailEntry? existedEntry = await _emailService.getEmailEntry(
+        email,
+        chainId,
+      );
+
+      EmailEntry emailEntry;
+
+      if (existedEntry == null) {
+        await _log.debug(
+          'Email entry not found, creating new',
+          chainId: chainId,
+        );
+        emailEntry = _emailService.createNewEntry(email);
+      } else {
+        await _log.debug(
+          'Email entry found, incrementing stats',
+          chainId: chainId,
+          extra: {'sentCount': existedEntry.timesSent},
+        );
+        emailEntry = _emailService.incrementSendStats(existedEntry);
+      }
+
+      final emailToSend = _emailService.buildSendAddress(emailEntry);
+
+      await _log.info(
+        'Sending coupon request',
+        chainId: chainId,
+        extra: {'emailToSend': emailToSend},
+      );
+
+      await _generateCouponApi.generateCoupon(emailToSend, chainId);
+
+      await _emailService.createOrUpdate(emailEntry, chainId);
+
+      await _log.info(
+        'Coupon successfully sent to email',
+        chainId: chainId,
+        extra: {'email': email, 'finalSendCount': emailEntry.timesSent},
+      );
+
+      return _emailService.createResult(existedEntry, emailEntry);
+    } catch (e, s) {
+      final error = UnknownError(
+        message: 'Failed to send coupon to email',
+        detail: 'sendCouponToEmail',
+        cause: e,
+        stackTrace: s,
+      );
+      await _log.errorFrom(error, chainId: chainId);
+
+      rethrow;
     }
-    final emailToSent = _emailService.buildSendAddress(emailEntry);
-    await _generateCouponApi.generateCoupon(emailToSent, chainId);
-    await _emailService.createOrUpdate(emailEntry);
-    return _emailService.createResult(existedEntry, emailEntry);
   }
 
   Future<bool> processPendingJobs(String chainId) async {
@@ -316,7 +366,6 @@ class CouponsService {
           chainId: chainId,
           extra: {'jobId': job.id, 'triesBefore': job.tries},
         );
-
         await _couponJobsRepository.incrementTries(job);
 
         return;
@@ -358,7 +407,6 @@ class CouponsService {
           'cause': e.toString(),
         },
       );
-
       await _couponJobsRepository.incrementTries(job);
       rethrow;
     }
@@ -378,73 +426,122 @@ class CouponsService {
     CouponJob job,
     String chainId,
   ) async {
-    final List<TempMailInboxResponse> inboxMails = await _tenMinuteMailApi
-        .getInbox(job.cookieHeader, chainId: chainId);
-
-    print("trying get mail");
-    if (inboxMails.isEmpty) {
-      return null;
-    }
-    print("MAIL EXIST");
-    print("cookies - ${job.cookieHeader}");
-
-    TempMailInboxResponse? couponMail;
-
-    for (final m in inboxMails) {
-      if (m.subject == AppConstants.emailSubject ||
-          (m.sender != null && m.sender!.contains(AppConstants.emailSender))) {
-        couponMail = m;
-        break;
-      }
-    }
-
-    if (couponMail == null) {
-      print("Wrong mail, wrong sender");
-      return null;
-    }
-    if (couponMail.bodyPlainText.isEmpty) {
-      throw Exception("WTF");
-    }
-
-    final match = RegExp(
-      r'https://api\.couponcarrier\.io/r/[^\s)]+',
-    ).firstMatch(couponMail.bodyPlainText);
-
-    if (match == null) {
-      print("Wrong match in regexp");
-      return null;
-    }
-
-    final couponUrl = match.group(0)!;
-
-    final uri = Uri.parse(couponUrl);
-    final hsh = uri.queryParameters['hsh'];
-    if (hsh == null) {
-      throw Exception('Missing hsh in coupon URL');
-    }
-
-    print("getting html for coupon");
-    print("link - $couponUrl");
-
-    final res = await _couponViewApi.getCouponHtml(job.mail, hsh);
-    final htmlStr = res.data as String;
-    final doc = html.parse(htmlStr);
-
-    print("HTML received");
-    final h3 = doc.querySelector('h3.code-tag');
-    if (h3 == null) {
-      print('ERROR: Coupon code not found');
-      throw Exception('Coupon code not found');
-    }
-
-    final codeText = h3.text.trim();
-    return Coupon(
-      id: null,
-      title: 'Coffee coupon',
-      code: codeText,
-      createdAt: DateTime.now(),
-      used: false,
-      link: couponUrl,
+    await _log.info(
+      'Fetching inbox with cookies',
+      chainId: chainId,
+      extra: {'jobId': job.id, 'email': job.mail},
     );
+
+    try {
+      final inboxMails = await _tenMinuteMailApi.getInbox(
+        job.cookieHeader,
+        chainId: chainId,
+      );
+
+      if (inboxMails.isEmpty) {
+        await _log.debug('Inbox is empty', chainId: chainId);
+        return null;
+      }
+
+      TempMailInboxResponse? couponMail;
+
+      for (final m in inboxMails) {
+        if (m.subject == AppConstants.emailSubject ||
+            (m.sender != null &&
+                m.sender!.contains(AppConstants.emailSender))) {
+          couponMail = m;
+          break;
+        }
+      }
+
+      if (couponMail == null) {
+        await _log.warning(
+          'No coupon email found in inbox',
+          chainId: chainId,
+          extra: {'messagesCount': inboxMails.length},
+        );
+        return null;
+      }
+
+      if (couponMail.bodyPlainText.isEmpty) {
+        await _log.warning('Coupon email body is empty', chainId: chainId);
+        return null;
+      }
+
+      final match = RegExp(
+        r'https://api\.couponcarrier\.io/r/[^\s)]+',
+      ).firstMatch(couponMail.bodyPlainText);
+
+      if (match == null) {
+        await _log.warning(
+          'Coupon URL not found in email body',
+          chainId: chainId,
+          extra: {'subject': couponMail.subject},
+        );
+        return null;
+      }
+
+      final couponUrl = match.group(0)!;
+
+      final uri = Uri.parse(couponUrl);
+      final hsh = uri.queryParameters['hsh'];
+      if (hsh == null) {
+        await _log.warning(
+          'Missing hsh parameter in coupon URL',
+          chainId: chainId,
+          extra: {'url': couponUrl},
+        );
+        return null;
+      }
+
+      await _log.info(
+        'Fetching coupon HTML',
+        chainId: chainId,
+        extra: {'url': couponUrl},
+      );
+
+      final res = await _couponViewApi.getCouponHtml(job.mail, hsh, chainId);
+
+      final htmlStr = res.data as String;
+      final doc = html.parse(htmlStr);
+
+      final h3 = doc.querySelector('h3.code-tag');
+      if (h3 == null) {
+        await _log.warning(
+          'Coupon code element not found in HTML',
+          chainId: chainId,
+          extra: {'url': couponUrl},
+        );
+        return null;
+      }
+
+      final codeText = h3.text.trim();
+
+      await _log.info(
+        'Coupon successfully parsed',
+        chainId: chainId,
+        extra: {'code': codeText},
+      );
+
+      return Coupon(
+        id: null,
+        title: 'Coffee coupon',
+        code: codeText,
+        createdAt: DateTime.now(),
+        used: false,
+        link: couponUrl,
+      );
+    } catch (e, s) {
+      final error = UnknownError(
+        message: 'Failed to fetch coupon using cookies',
+        detail: '_tryFetchCouponWithCookies',
+        cause: e,
+        stackTrace: s,
+      );
+
+      await _log.errorFrom(error, chainId: chainId);
+
+      return null;
+    }
   }
 }

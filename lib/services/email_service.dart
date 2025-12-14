@@ -3,20 +3,84 @@ import 'package:coupon_app/db/emails_repository.dart';
 import 'package:coupon_app/models/email.dart';
 import 'package:coupon_app/models/send_email_result.dart';
 
+import '../core/log/app_error.dart';
+import '../core/log/log_record.dart';
+import '../core/log/logger.dart';
+
 class EmailService {
   static const int _monthMs = 62 * 24 * 60 * 60 * 1000;
+  static final _log = AppLogger.instance.getLogger(
+    category: LogCategory.db,
+    source: 'EmailService',
+  );
   final EmailsRepository _emailsRepository;
   final SettingsController _settingsController;
 
   EmailService(this._emailsRepository, this._settingsController);
 
-  Future<EmailEntry?> getEmailEntry(String email) async {
+  Future<EmailEntry?> getEmailEntry(String email, String chainId) async {
     final normalizedMail = _normalizeEmail(email);
-    return await _emailsRepository.get(normalizedMail);
+
+    await _log.debug(
+      'Fetching email entry',
+      chainId: chainId,
+      extra: {'email': email, 'normalized': normalizedMail},
+    );
+
+    try {
+      final entry = await _emailsRepository.get(normalizedMail);
+
+      await _log.debug(
+        entry == null ? 'Email entry not found' : 'Email entry loaded',
+        chainId: chainId,
+        extra: {'normalized': normalizedMail, 'found': entry != null},
+      );
+
+      return entry;
+    } catch (e, s) {
+      final error = DbError(
+        message: 'Failed to load email entry',
+        detail: 'emails.get',
+        operation: 'select',
+        table: 'emails',
+        cause: e,
+        stackTrace: s,
+      );
+      await _log.errorFrom(error, chainId: chainId);
+
+      rethrow;
+    }
   }
 
-  Future<void> createOrUpdate(EmailEntry entry) async {
-    await _emailsRepository.upsert(entry);
+  Future<void> createOrUpdate(EmailEntry entry, String chainId) async {
+    await _log.info(
+      'Creating or updating email entry',
+      chainId: chainId,
+      extra: {'email': entry.mail},
+    );
+
+    try {
+      await _emailsRepository.upsert(entry);
+
+      await _log.info(
+        'Email entry saved',
+        chainId: chainId,
+        extra: {'email': entry.mail},
+      );
+    } catch (e, s) {
+      final error = DbError(
+        message: 'Failed to create or update email entry',
+        detail: 'emails.upsert',
+        operation: 'upsert',
+        table: 'emails',
+        cause: e,
+        stackTrace: s,
+      );
+
+      await _log.errorFrom(error, chainId: chainId);
+
+      rethrow;
+    }
   }
 
   bool _isGmail(String email) {
